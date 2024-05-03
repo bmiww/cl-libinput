@@ -5,39 +5,20 @@
 ;;; "cl-libinput" goes here. Hacks and glory await!
 
 (define-foreign-library libinput
-  (:unix (:or "libinput.so.10"
-              "libinput.so"
-              "/usr/lib64/libinput.so"
-              "/usr/lib64/libinput.so.10"
-              "/usr/lib/x86_64-linux-gnu/libinput.so.10"))
+  (:unix (:or
+	  "libinput.so"
+	  "libinput.so.10"
+          "/usr/lib64/libinput.so"
+          "/usr/lib64/libinput.so.10"
+          "/usr/lib/x86_64-linux-gnu/libinput.so.10"))
   (t (:default "libinput")))
 
 (use-foreign-library libinput)
 
-(defcstruct libinput-interface
-  (open-restricted :pointer)
-  (close-restricted :pointer))
 
-(defcfun ("libinput_unref" unref) :pointer
-  (context :pointer))
-
-(defcfun ("libinput_path_create_context" path-create-context) :pointer
-  (interface :pointer)
-  (user-date :pointer))
-
-(defcfun ("libinput_path_add_device" path-add-device) :pointer
-  (context :pointer)
-  (path :string))
-
-(defcfun ("libinput_path_remove_device" path-remove-device) :void
-  (device :pointer))
-
-(defcfun ("libinput_get_fd" get-fd) :int
-  (context :pointer))
-
-(defcfun ("libinput_dispatch" dispatch) :int
-  (context :pointer))
-
+;; ┌─┐┌─┐┌─┐┌─┐┌┐ ┬┬  ┬┌┬┐┬┌─┐┌─┐
+;; │  ├─┤├─┘├─┤├┴┐││  │ │ │├┤ └─┐
+;; └─┘┴ ┴┴  ┴ ┴└─┘┴┴─┘┴ ┴ ┴└─┘└─┘
 (defparameter device-cap-keyboard 0)
 (defparameter device-cap-pointer 1)
 (defparameter device-cap-touch 2)
@@ -45,23 +26,10 @@
 (defparameter device-cap-tablet-pad 4)
 (defparameter device-cap-gesture 5)
 
-(defcfun ("libinput_device_has_capability" device-has-capability) :int
-  (device :pointer)
-  (capability :int))
 
-(defcfun ("libinput_device_ref" device-ref) :pointer
-  (device :pointer))
-
-(defcfun ("libinput_device_unref" device-unref) :pointer
-  (device :pointer))
-
-(defcfun ("libinput_get_event" get-event) :pointer
-  (context :pointer))
-
-(defcfun ("libinput_event_get_type" event-get-type) :int
-  (event :pointer))
-
-;; Types
+;; ┌─┐┬  ┬┌─┐┌┐┌┌┬┐┌─┐
+;; ├┤ └┐┌┘├┤ │││ │ └─┐
+;; └─┘ └┘ └─┘┘└┘ ┴ └─┘
 (defparameter none 0)
 (defparameter device-added 1)
 (defparameter device-removed 2)
@@ -88,6 +56,54 @@
 (defparameter gesture-pinch-begin 803)
 (defparameter gesture-pinch-update 804)
 (defparameter gesture-pinch-end 805)
+
+
+;; ┌─┐┌┬┐┬─┐┬ ┬┌─┐┌┬┐┌─┐
+;; └─┐ │ ├┬┘│ ││   │ └─┐
+;; └─┘ ┴ ┴└─└─┘└─┘ ┴ └─┘
+(defcstruct libinput-interface
+  (open-restricted :pointer)
+  (close-restricted :pointer))
+
+
+;; ┌─┐┬ ┬┌┐┌┌─┐┌┬┐┬┌─┐┌┐┌┌─┐
+;; ├┤ │ │││││   │ ││ ││││└─┐
+;; └  └─┘┘└┘└─┘ ┴ ┴└─┘┘└┘└─┘
+(defcfun ("libinput_unref" unref) :pointer
+  (context :pointer))
+
+(defcfun ("libinput_path_create_context" path-create-context) :pointer
+  (interface :pointer)
+  (user-date :pointer))
+
+(defcfun ("libinput_path_add_device" path-add-device) :pointer
+  (context :pointer)
+  (path :string))
+
+(defcfun ("libinput_path_remove_device" path-remove-device) :void
+  (device :pointer))
+
+(defcfun ("libinput_get_fd" get-fd) :int
+  (context :pointer))
+
+(defcfun ("libinput_dispatch" dispatch) :int
+  (context :pointer))
+
+(defcfun ("libinput_device_has_capability" device-has-capability) :int
+  (device :pointer)
+  (capability :int))
+
+(defcfun ("libinput_device_ref" device-ref) :pointer
+  (device :pointer))
+
+(defcfun ("libinput_device_unref" device-unref) :pointer
+  (device :pointer))
+
+(defcfun ("libinput_get_event" get-event) :pointer
+  (context :pointer))
+
+(defcfun ("libinput_event_get_type" event-get-type) :int
+  (event :pointer))
 
 (defcfun ("libinput_event_destroy" event-destroy) :void
   (event :pointer))
@@ -122,32 +138,36 @@
 (defcfun ("libinput_event_pointer_get_dy" event-pointer-get-dy) :double
   (pointer-event :pointer))
 
-(defcallback open-restricted :int
-    ((path :string) (flags :int) (user-data :pointer))
-  (format t "Called open-restricted~%")
-  (let* ((context user-data)
-	 (fd (nix:open path flags)))
-    (format t "File descriptor ~A~%" fd)
-    (when (< fd 0)
-      (error "Failed to open ~A" path))
-    fd))
 
-(defcallback close-restricted :void
-    ((fd :int) (user-data :pointer))
-  (nix:close fd))
+;; ┌─┐┌─┐┬  ┬  ┌┐ ┌─┐┌─┐┬┌─┌─┐
+;; │  ├─┤│  │  ├┴┐├─┤│  ├┴┐└─┐
+;; └─┘┴ ┴┴─┘┴─┘└─┘┴ ┴└─┘┴ ┴└─┘
+(defvar *open-restricted* nil)
+(defcallback open-restricted :int ((path :string) (flags :int) (user-data :pointer))
+  (let* ((context user-data) (fd (funcall *open-restricted* path flags)))
+    (when (< fd 0) (error "Failed to open ~A" path)) fd))
 
-(defun make-libinput-interface ()
+(defvar *close-restricted* nil)
+(defcallback close-restricted :void ((fd :int) (user-data :pointer))
+  (funcall *close-restricted* fd))
+
+(defun make-libinput-interface (&key open-restricted close-restricted)
+  "Expects two callbacks - one that is expected to open and return a file descriptor,
+and one that is expected to close a file descriptor."
+  (unless (setf *open-restricted* open-restricted) (error "Expected a callback for fd opening"))
+  (unless (setf *close-restricted* close-restricted) (error "Expected a callback for fd closing"))
+
   (let ((interface (foreign-alloc '(:struct libinput-interface))))
-    (setf (foreign-slot-value interface
-			      '(:struct libinput-interface)
-			      'open-restricted)
+    (setf (foreign-slot-value interface '(:struct libinput-interface) 'open-restricted)
 	  (callback open-restricted))
-    (setf (foreign-slot-value interface
-			      '(:struct libinput-interface)
-			      'close-restricted)
+    (setf (foreign-slot-value interface '(:struct libinput-interface) 'close-restricted)
 	  (callback close-restricted))
     interface))
 
+
+;; ┌┬┐┌─┐┌─┐┬─┐┌─┐┌─┐
+;; │││├─┤│  ├┬┘│ │└─┐
+;; ┴ ┴┴ ┴└─┘┴└─└─┘└─┘
 (defmacro with-pointer-motion ((event time dx dy) &body body)
   (let ((pointer-event (gensym "pointer-event")))
     `(let* ((,time (event-pointer-get-time ,event))
@@ -171,88 +191,3 @@
 	    (,state (event-keyboard-get-key-state ,keyboard-event))
 	    (,key (event-keyboard-get-key ,keyboard-event)))
        ,@body)))
-
-#|
-(defun handle-event-context (context event)
-  (when (not (null-pointer-p event))
-    (let ((type (event-get-type event)))
-      (cond
-	((= type keyboard-key) (progn
-				 (format t "fd: ~A~%" (get-fd context))
-				 (handle-keyboard event)))
-	((= type pointer-motion) (handle-pointer-motion event))
-	((= type pointer-button) (progn
-				   (format t "fd: ~A~%" (get-fd context))
-				   (handle-pointer-button event)))))
-    (event-destroy event)))
-
-(defun handle-keyboard (event)
-  (let* ((keyboard-event (event-get-keyboard-event event))
-	 (state (event-keyboard-get-key-state keyboard-event))
-	 (key (event-keyboard-get-key keyboard-event)))
-    (format t "Key: ~A, state: ~A~%" key state)))
-
-(defun handle-pointer-motion (event)
-  (let* ((pointer-event (event-get-pointer-event event))
-	 (dx (event-pointer-get-dx pointer-event))
-	 (dy (event-pointer-get-dy pointer-event)))
-    ;;(format t "dx: ~A, dy: ~A~%" dx dy)
-    ))
-
-(defun handle-pointer-button (event)
-  (let* ((pointer-event (event-get-pointer-event event))
-	 (state (event-pointer-get-button-state pointer-event))
-	 (button (event-pointer-get-button pointer-event)))
-    (format t "Button: ~A, state: ~A~%" button state)))
-
-(defun handle-event (event)
-  (when (not (null-pointer-p event))
-    (let ((type (event-get-type event)))
-      (cond
-	((= type keyboard-key) (handle-keyboard event))
-	((= type pointer-motion) (handle-pointer-motion event))
-	((= type pointer-button) (handle-pointer-button event))))
-    (event-destroy event)))
-
-(defun event-loop (context)
-  (dispatch context)
-  (let ((event (get-event context)))
-    (loop :while (not (null-pointer-p event))
-       :do (progn
-	     (handle-event-context context event)
-	     (setf event (get-event context))))))
-
-(defun test-2fd (path-1 path-2)
-  (let* ((interface (make-libinput-interface))
-	 (context-1 (path-create-context interface (null-pointer)))
-	 (fd-1 (get-fd context-1))
-	 (context-2 (path-create-context interface (null-pointer)))
-	 (fd-2 (get-fd context-2)))
-    (path-add-device context-1 path-1)
-    (path-add-device context-2 path-2)
-    (nix:with-pollfds (pollfds
-		       (one fd-1 nix:pollin)
-		       (two fd-2 nix:pollin))
-      (loop :do
-	 (let ((event (nix:poll pollfds 2 -1)))
-	   (when event
-	     (when (= (nix:poll-return-event one) 1)
-	       (event-loop context-1))
-	     (when (= (nix:poll-return-event two) 1)
-	       (event-loop context-2))))))))
-
-(defun test-alt (&rest paths)
-  (let* ((interface (make-libinput-interface))
-	 (context (path-create-context interface (null-pointer)))
-	 (fd (get-fd context)))
-    (mapcar (lambda (path)
-	      (path-add-device context path))
-	    paths)
-    (nix:with-pollfds (pollfds
-		       (pollfd fd nix:pollin))
-      (loop :with ret = (nix:poll pollfds 1 -1)
-	 :do (when ret
-	       (event-loop context))))))
-
-
-|#
