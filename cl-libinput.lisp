@@ -142,28 +142,20 @@
 ;; ┌─┐┌─┐┬  ┬  ┌┐ ┌─┐┌─┐┬┌─┌─┐
 ;; │  ├─┤│  │  ├┴┐├─┤│  ├┴┐└─┐
 ;; └─┘┴ ┴┴─┘┴─┘└─┘┴ ┴└─┘┴ ┴└─┘
-(defvar *open-restricted* nil)
 (defcallback open-restricted :int ((path :string) (flags :int) (user-data :pointer))
-  (let* ((context user-data) (fd (funcall *open-restricted* path flags)))
+  (let* ((context user-data) (fd (nix:open path flags)))
     (when (< fd 0) (error "Failed to open ~A" path)) fd))
 
-(defvar *close-restricted* nil)
 (defcallback close-restricted :void ((fd :int) (user-data :pointer))
-  (funcall *close-restricted* fd))
+  (nix:close fd))
 
 (defun make-libinput-interface (&key open-restricted close-restricted)
-  "Expects two callbacks - one that is expected to open and return a file descriptor,
-and one that is expected to close a file descriptor."
-  (unless (setf *open-restricted* open-restricted) (error "Expected a callback for fd opening"))
-  (unless (setf *close-restricted* close-restricted) (error "Expected a callback for fd closing"))
-
   (let ((interface (foreign-alloc '(:struct libinput-interface))))
     (setf (foreign-slot-value interface '(:struct libinput-interface) 'open-restricted)
 	  (callback open-restricted))
     (setf (foreign-slot-value interface '(:struct libinput-interface) 'close-restricted)
 	  (callback close-restricted))
     interface))
-
 
 ;; ┌┬┐┌─┐┌─┐┬─┐┌─┐┌─┐
 ;; │││├─┤│  ├┬┘│ │└─┐
