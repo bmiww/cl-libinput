@@ -7,6 +7,5 @@
   :license "BSD 3-Clause"
   :depends-on (#:cffi)
   :serial t
-  :components ((:file "cl-libseat")
-	       (:file "package")
+  :components ((:file "package")
                (:file "cl-libinput")))
