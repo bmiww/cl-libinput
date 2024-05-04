@@ -4,7 +4,7 @@
   (:use #:cl #:cffi)
   (:export
    unref
-   path-create-context
+   create-context
    path-add-device
    path-remove-device
    get-fd
@@ -15,10 +15,11 @@
    device-cap-pointer
    device-cap-touch
    device-cap-tablet-tool
-   device-cap-tablet-pad 
+   device-cap-tablet-pad
    device-cap-gesture
    device-has-capability
-   get-event
+   device-get-name
+   read-event
    event-get-type
    none
    device-added
