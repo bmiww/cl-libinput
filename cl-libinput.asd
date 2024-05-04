@@ -2,9 +2,10 @@
 
 (asdf:defsystem #:cl-libinput
   :description "Common Lisp wrapper for libinput"
-  :author "Malcolm Still <malcolm.still@gmail.com>"
+  :author ("Malcolm Still <malcolm.still@gmail.com>"
+	   "bmiww <bmiww@bky.one>")
   :license "BSD 3-Clause"
-  :depends-on (#:cffi #:osicat)
+  :depends-on (#:cffi)
   :serial t
   :components ((:file "cl-libseat")
 	       (:file "package")

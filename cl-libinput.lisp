@@ -5,7 +5,7 @@
 ;; ██║     ██║╚════╝██║     ██║██╔══██╗██║██║╚██╗██║██╔═══╝ ██║   ██║   ██║
 ;; ╚██████╗███████╗ ███████╗██║██████╔╝██║██║ ╚████║██║     ╚██████╔╝   ██║
 ;;  ╚═════╝╚══════╝ ╚══════╝╚═╝╚═════╝ ╚═╝╚═╝  ╚═══╝╚═╝      ╚═════╝    ╚═╝
-;;; "cl-libinput" goes here. Hacks and glory await!
+;; "cl-libinput" goes here. Hacks and glory await!
 (in-package #:libinput)
 (define-foreign-library libinput
   (:unix (:or
