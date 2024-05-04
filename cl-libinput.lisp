@@ -178,22 +178,21 @@
 
 (defun create-context () (path-create-context (make-libinput-interface) (null-pointer)))
 
-(defun make-keyboard-event)
-
 (defun get-event (context)
   (let* ((event (%get-event context))
 	 (event-type (get (event-get-type event) *event-types*))
 	 (event-device (event-get-device event)))
-    (funcall
-     (case event-type
-       (:none nil)
-       (:keyboard-key                              'mk-keyboard@)
-       (:pointer-button                            'mk-pointer-button@)
-       ((:pointer-motion :pointer-motion-absolute) 'mk-pointer-motion@)
-       (t (error "The dev writing this got lazy and didn't cover the event type ~A" event-type)))
-     event
-     event-device)))
-
+    (prog1
+	(funcall
+	 (case event-type
+	   (:none nil)
+	   (:keyboard-key                              'mk-keyboard@)
+	   (:pointer-button                            'mk-pointer-button@)
+	   ((:pointer-motion :pointer-motion-absolute) 'mk-pointer-motion@)
+	   (t (error "The dev writing this got lazy and didn't cover the event type ~A" event-type)))
+	 event
+	 event-device)
+      (event-destroy event))))
 
 ;; ┌─┐┬  ┬┌─┐┌┐┌┌┬┐┌─┐┬─┐┌─┐
 ;; ├┤ └┐┌┘├┤ │││ │ │ │├┬┘└─┐

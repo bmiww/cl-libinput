@@ -45,19 +45,4 @@
    gesture-swipe-end
    gesture-pinch-begin
    gesture-pinch-update
-   gesture-pinch-end
-   event-destroy
-   event-get-keyboard-event
-   event-keyboard-get-key
-   event-keyboard-get-key-state
-   event-keyboard-get-time
-   event-get-pointer-event
-   event-pointer-get-button
-   event-pointer-get-button-state
-   event-pointer-get-dx
-   event-pointer-get-dy
-   event-pointer-get-time
-   make-libinput-interface
-   with-pointer-motion
-   with-pointer-button
-   with-keyboard-key))
+   gesture-pinch-end))
