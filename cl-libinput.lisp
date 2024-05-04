@@ -31,32 +31,41 @@
 ;; ┌─┐┬  ┬┌─┐┌┐┌┌┬┐┌─┐
 ;; ├┤ └┐┌┘├┤ │││ │ └─┐
 ;; └─┘ └┘ └─┘┘└┘ ┴ └─┘
-(defparameter none 0)
-(defparameter device-added 1)
-(defparameter device-removed 2)
-(defparameter keyboard-key 300)
-(defparameter pointer-motion 400)
-(defparameter pointer-motion-absolute 401)
-(defparameter pointer-button 402)
-(defparameter pointer-axis 403)
-(defparameter touch-down 500)
-(defparameter touch-up 501)
-(defparameter touch-motion 502)
-(defparameter touch-cancel 503)
-(defparameter touch-frame 504)
-(defparameter tablet-tool-axis 600)
-(defparameter tablet-tool-proximity 601)
-(defparameter tablet-tool-tip 602)
-(defparameter tablet-tool-button 603)
-(defparameter tablet-pad-button 700)
-(defparameter tablet-pad-ring 701)
-(defparameter tablet-pad-strip 702)
-(defparameter gesture-swipe-begin 800)
-(defparameter gesture-swipe-update 801)
-(defparameter gesture-swipe-end 802)
-(defparameter gesture-pinch-begin 803)
-(defparameter gesture-pinch-update 804)
-(defparameter gesture-pinch-end 805)
+(defvar *event-types*
+  '(0 :none
+    1 :device-added
+    2 :device-removed
+    300 :keyboard-key
+    400 :pointer-motion
+    401 :pointer-motion-absolute
+    402 :pointer-button
+    403 :pointer-axis
+    404 :pointer-scroll-wheel
+    405 :pointer-scroll-finger
+    406 :pointer-scroll-continuous
+    500 :touch-down
+    501 :touch-up
+    502 :touch-motion
+    503 :touch-cancel
+    504 :touch-frame
+    600 :tablet-tool-axis
+    601 :tablet-tool-proximity
+    602 :tablet-tool-tip
+    603 :tablet-tool-button
+    700 :tablet-pad-button
+    701 :tablet-pad-ring
+    702 :tablet-pad-strip
+    703 :tablet-pad-key
+    704 :tablet-pad-dial
+    800 :gesture-swipe-begin
+    801 :gesture-swipe-update
+    802 :gesture-swipe-end
+    803 :gesture-pinch-begin
+    804 :gesture-pinch-update
+    805 :gesture-pinch-end
+    806 :gesture-hold-begin
+    807 :gesture-hold-end
+    900 :switch-toggle))
 
 
 ;; ┌─┐┌┬┐┬─┐┬ ┬┌─┐┌┬┐┌─┐
@@ -112,6 +121,9 @@
 (defcfun ("libinput_event_destroy" event-destroy) :void
   (event :pointer))
 
+(defcfun ("libinput_event_get_device" event-get-device) :pointer
+  (event :pointer))
+
 (defcfun ("libinput_event_get_keyboard_event" event-get-keyboard-event) :pointer
   (event :pointer))
 
@@ -163,30 +175,53 @@
 
 (defun create-context () (path-create-context (make-libinput-interface) (null-pointer)))
 
+(defun make-keyboard-event)
 
-;; ┌┬┐┌─┐┌─┐┬─┐┌─┐┌─┐
-;; │││├─┤│  ├┬┘│ │└─┐
-;; ┴ ┴┴ ┴└─┘┴└─└─┘└─┘
-(defmacro with-pointer-motion ((event time dx dy) &body body)
-  (let ((pointer-event (gensym "pointer-event")))
-    `(let* ((,time (event-pointer-get-time ,event))
-	    (,pointer-event (event-get-pointer-event ,event))
-	    (,dx (event-pointer-get-dx ,pointer-event))
-	    (,dy (event-pointer-get-dy ,pointer-event)))
-       ,@body)))
+(defun read-event (context)
+  (let* ((event (get-event context))
+	 (event-type (get (event-get-type event) *event-types*))
+	 (event-device (event-get-device event)))
+    (funcall
+     (case event-type
+       (:none nil)
+       (:keyboard-key                              'mk-keyboard@)
+       (:pointer-button                            'mk-pointer-button@)
+       ((:pointer-motion :pointer-motion-absolute) 'mk-pointer-motion@)
+       (t (error "The dev writing this got lazy and didn't cover the event type ~A" event-type)))
+     event
+     event-device)))
 
-(defmacro with-pointer-button ((event time button state) &body body)
-  (let ((pointer-event (gensym "pointer-event")))
-    `(let* ((,time (event-pointer-get-time ,event))
-	    (,pointer-event (event-get-pointer-event ,event))
-	    (,button (event-pointer-get-button ,pointer-event))
-	    (,state (event-pointer-get-button-state ,pointer-event)))
-       ,@body)))
 
-(defmacro with-keyboard-key ((event time key state) &body body)
-  (let ((keyboard-event (gensym "keyboard-event")))
-    `(let* ((,time (event-keyboard-get-time ,event))
-	    (,keyboard-event (event-get-keyboard-event ,event))
-	    (,state (event-keyboard-get-key-state ,keyboard-event))
-	    (,key (event-keyboard-get-key ,keyboard-event)))
-       ,@body)))
+;; ┌─┐┬  ┬┌─┐┌┐┌┌┬┐┌─┐┬─┐┌─┐
+;; ├┤ └┐┌┘├┤ │││ │ │ │├┬┘└─┐
+;; └─┘ └┘ └─┘┘└┘ ┴ └─┘┴└─└─┘
+;; Replacing the word -event with the symbol @
+(defstruct event device)
+(defstruct (keyboard@ (:include event))                 time key state)
+(defstruct (pointer-motion@ (:include event))           time dx dy)
+(defstruct (pointer-button@ (:include pointer-motion@)) button state)
+
+
+;; ┌─┐┬  ┬┌─┐┌┐┌┌┬┐┌─┐┬─┐  ┌─┐┌─┐┌┐┌┌─┐┌┬┐┬─┐┬ ┬┌─┐┌┬┐┌─┐┬─┐┌─┐
+;; ├┤ └┐┌┘├┤ │││ │ │ │├┬┘  │  │ ││││└─┐ │ ├┬┘│ ││   │ │ │├┬┘└─┐
+;; └─┘ └┘ └─┘┘└┘ ┴ └─┘┴└─  └─┘└─┘┘└┘└─┘ ┴ ┴└─└─┘└─┘ ┴ └─┘┴└─└─┘
+(defun mk-keyboard@ (event device)
+  (make-keyboard@
+   :device device
+   :time (event-keyboard-get-time event)
+   :key (event-keyboard-get-key event)
+   :state (event-keyboard-get-key-state event)))
+
+(defun mk-pointer-motion@ (event device)
+  (make-pointer-motion@
+   :device device
+   :time (event-pointer-get-time event)
+   :dx (event-pointer-get-dx event)
+   :dy (event-pointer-get-dy event)))
+
+(defun mk-pointer-button@ (event device)
+  (make-pointer-button@
+   :device device
+   :time (event-pointer-get-time event)
+   :button (event-pointer-get-button event)
+   :state (event-pointer-get-button-state event)))
