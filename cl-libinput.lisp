@@ -25,6 +25,7 @@
 (defparameter device-cap-tablet-tool 3)
 (defparameter device-cap-tablet-pad 4)
 (defparameter device-cap-gesture 5)
+(defparameter device-cap-switch 6)
 
 
 ;; ┌─┐┬  ┬┌─┐┌┐┌┌┬┐┌─┐
