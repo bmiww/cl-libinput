@@ -161,6 +161,9 @@
 	  (callback close-restricted))
     interface))
 
+(defun create-context () (path-create-context (make-libinput-interface) (null-pointer)))
+
+
 ;; ┌┬┐┌─┐┌─┐┬─┐┌─┐┌─┐
 ;; │││├─┤│  ├┬┘│ │└─┐
 ;; ┴ ┴┴ ┴└─┘┴└─└─┘└─┘
