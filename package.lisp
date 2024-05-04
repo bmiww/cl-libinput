@@ -19,7 +19,7 @@
    device-cap-gesture
    device-has-capability
    device-get-name
-   read-event
+   get-event
    event-get-type
    none
    device-added

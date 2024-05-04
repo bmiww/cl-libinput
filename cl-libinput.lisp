@@ -115,7 +115,7 @@
 (defcfun ("libinput_device_unref" device-unref) :pointer
   (device :pointer))
 
-(defcfun ("libinput_get_event" get-event) :pointer
+(defcfun ("libinput_get_event" %get-event) :pointer
   (context :pointer))
 
 (defcfun ("libinput_event_get_type" event-get-type) :int
@@ -180,8 +180,8 @@
 
 (defun make-keyboard-event)
 
-(defun read-event (context)
-  (let* ((event (get-event context))
+(defun get-event (context)
+  (let* ((event (%get-event context))
 	 (event-type (get (event-get-type event) *event-types*))
 	 (event-device (event-get-device event)))
     (funcall
