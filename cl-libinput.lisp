@@ -153,7 +153,7 @@
 (defcallback close-restricted :void ((fd :int) (user-data :pointer))
   (nix:close fd))
 
-(defun make-libinput-interface (&key open-restricted close-restricted)
+(defun make-libinput-interface ()
   (let ((interface (foreign-alloc '(:struct libinput-interface))))
     (setf (foreign-slot-value interface '(:struct libinput-interface) 'open-restricted)
 	  (callback open-restricted))
