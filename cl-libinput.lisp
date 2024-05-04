@@ -161,13 +161,13 @@
 
 ;; Touch event readers
 ;; NOTE: Missing the usec time and transformed x/y
-(defcfun ("libinput_event_touch_get_time" %event-touch-get-time) :uint32
+(defcfun ("libinput_event_touch_get_time" event-touch-get-time) :uint32
   (event :pointer))
 
-(defcfun ("libinput_event_touch_get_x" %event-touch-get-x) :double
+(defcfun ("libinput_event_touch_get_x" event-touch-get-x) :double
   (event :pointer))
 
-(defcfun ("libinput_event_touch_get_y" %event-touch-get-y) :double
+(defcfun ("libinput_event_touch_get_y" event-touch-get-y) :double
   (event :pointer))
 
 
@@ -175,10 +175,12 @@
 ;; │  ├─┤│  │  ├┴┐├─┤│  ├┴┐└─┐
 ;; └─┘┴ ┴┴─┘┴─┘└─┘┴ ┴└─┘┴ ┴└─┘
 (defcallback open-restricted :int ((path :string) (flags :int) (user-data :pointer))
-  (let* ((context user-data) (fd (nix:open path flags)))
+  (declare (ignore user-data))
+  (let* ((fd (nix:open path flags)))
     (when (< fd 0) (error "Failed to open ~A" path)) fd))
 
 (defcallback close-restricted :void ((fd :int) (user-data :pointer))
+  (declare (ignore user-data))
   (nix:close fd))
 
 (defun make-libinput-interface ()
@@ -193,8 +195,7 @@
 
 (defun get-event (context)
   (let* ((event (%get-event context))
-	 (event-type (get (event-get-type event) *event-types*))
-	 (event-device (event-get-device event)))
+	 (event-type (get (event-get-type event) *event-types*)))
     (prog1
 	(funcall
 	 (case event-type
@@ -216,7 +217,7 @@
 ;; ├┤ └┐┌┘├┤ │││ │ │ │├┬┘└─┐
 ;; └─┘ └┘ └─┘┘└┘ ┴ └─┘┴└─└─┘
 ;; Replacing the word -event with the symbol @
-(defstruct event device)
+(defstruct event device evt-type)
 (defstruct (keyboard@ (:include event))                 time key state)
 (defstruct (pointer-motion@ (:include event))           time dx dy)
 (defstruct (pointer-button@ (:include pointer-motion@)) button state)
