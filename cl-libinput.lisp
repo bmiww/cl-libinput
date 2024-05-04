@@ -94,6 +94,9 @@
   (device :pointer)
   (capability :int))
 
+(defcfun ("libinput_device_get_name" device-get-name) :string
+  (device :pointer))
+
 (defcfun ("libinput_device_ref" device-ref) :pointer
   (device :pointer))
 
