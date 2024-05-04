@@ -127,6 +127,7 @@
 (defcfun ("libinput_event_get_device" event-get-device) :pointer
   (event :pointer))
 
+;; Keyboard event readers
 (defcfun ("libinput_event_get_keyboard_event" event-get-keyboard-event) :pointer
   (event :pointer))
 
@@ -139,6 +140,7 @@
 (defcfun ("libinput_event_keyboard_get_key_state" event-keyboard-get-key-state) :int
   (keyboard-event :pointer))
 
+;; Pointer event readers
 (defcfun ("libinput_event_get_pointer_event" event-get-pointer-event) :pointer
   (event :pointer))
 
@@ -156,6 +158,17 @@
 
 (defcfun ("libinput_event_pointer_get_dy" event-pointer-get-dy) :double
   (pointer-event :pointer))
+
+;; Touch event readers
+;; NOTE: Missing the usec time and transformed x/y
+(defcfun ("libinput_event_touch_get_time" %event-touch-get-time) :uint32
+  (event :pointer))
+
+(defcfun ("libinput_event_touch_get_x" %event-touch-get-x) :double
+  (event :pointer))
+
+(defcfun ("libinput_event_touch_get_y" %event-touch-get-y) :double
+  (event :pointer))
 
 
 ;; ┌─┐┌─┐┬  ┬  ┌┐ ┌─┐┌─┐┬┌─┌─┐
@@ -187,11 +200,16 @@
 	 (case event-type
 	   (:none nil)
 	   (:keyboard-key                              'mk-keyboard@)
+	   (:touch-up 				       'mk-touch-up@)
+	   (:touch-down				       'mk-touch-down@)
+	   (:touch-motion			       'mk-touch-motion@)
+	   (:touch-cancel			       'mk-touch-cancel@)
+	   (:touch-frame			       'mk-touch-frame@)
 	   (:pointer-button                            'mk-pointer-button@)
 	   ((:pointer-motion :pointer-motion-absolute) 'mk-pointer-motion@)
 	   (t (error "The dev writing this got lazy and didn't cover the event type ~A" event-type)))
 	 event
-	 event-device)
+	 event-type)
       (event-destroy event))))
 
 ;; ┌─┐┬  ┬┌─┐┌┐┌┌┬┐┌─┐┬─┐┌─┐
@@ -202,28 +220,52 @@
 (defstruct (keyboard@ (:include event))                 time key state)
 (defstruct (pointer-motion@ (:include event))           time dx dy)
 (defstruct (pointer-button@ (:include pointer-motion@)) button state)
+(defstruct (touch@ (:include event))                    time x y)
+(defstruct (touch-up@ (:include touch@)))
+(defstruct (touch-down@ (:include touch@)))
+(defstruct (touch-motion@ (:include touch@)))
+(defstruct (touch-cancel@ (:include touch@)))
+(defstruct (touch-frame@ (:include event)) time)
 
 
 ;; ┌─┐┬  ┬┌─┐┌┐┌┌┬┐┌─┐┬─┐  ┌─┐┌─┐┌┐┌┌─┐┌┬┐┬─┐┬ ┬┌─┐┌┬┐┌─┐┬─┐┌─┐
 ;; ├┤ └┐┌┘├┤ │││ │ │ │├┬┘  │  │ ││││└─┐ │ ├┬┘│ ││   │ │ │├┬┘└─┐
 ;; └─┘ └┘ └─┘┘└┘ ┴ └─┘┴└─  └─┘└─┘┘└┘└─┘ ┴ ┴└─└─┘└─┘ ┴ └─┘┴└─└─┘
-(defun mk-keyboard@ (event device)
+(defun mk-keyboard@ (event evt-type)
   (make-keyboard@
-   :device device
+   :evt-type evt-type
+   :device (event-get-device event)
    :time (event-keyboard-get-time event)
    :key (event-keyboard-get-key event)
    :state (event-keyboard-get-key-state event)))
 
-(defun mk-pointer-motion@ (event device)
+(defun mk-pointer-motion@ (event evt-type)
   (make-pointer-motion@
-   :device device
+   :evt-type evt-type
+   :device (event-get-device event)
    :time (event-pointer-get-time event)
    :dx (event-pointer-get-dx event)
    :dy (event-pointer-get-dy event)))
 
-(defun mk-pointer-button@ (event device)
+(defun mk-pointer-button@ (event evt-type)
   (make-pointer-button@
-   :device device
+   :evt-type evt-type
+   :device (event-get-device event)
    :time (event-pointer-get-time event)
    :button (event-pointer-get-button event)
    :state (event-pointer-get-button-state event)))
+
+(defun touch-properties (event evt-type)
+  (list :x (event-touch-get-x event) :y (event-touch-get-y event)
+	:time (event-touch-get-time event) :evt-type evt-type
+	:device (event-get-device event)))
+
+(defun mk-touch-up@     (event evt-type) (apply 'make-touch-up@     (touch-properties event evt-type)))
+(defun mk-touch-down@   (event evt-type) (apply 'make-touch-down@   (touch-properties event evt-type)))
+(defun mk-touch-motion@ (event evt-type) (apply 'make-touch-motion@ (touch-properties event evt-type)))
+(defun mk-touch-cancel@ (event evt-type) (apply 'make-touch-cancel@ (touch-properties event evt-type)))
+(defun mk-touch-frame@ (event evt-type)
+  (make-touch-frame@
+   :evt-type evt-type
+   :device (event-get-device event)
+   :time (event-touch-get-time event)))
