@@ -174,24 +174,39 @@
 ;; ┌─┐┌─┐┬  ┬  ┌┐ ┌─┐┌─┐┬┌─┌─┐
 ;; │  ├─┤│  │  ├┴┐├─┤│  ├┴┐└─┐
 ;; └─┘┴ ┴┴─┘┴─┘└─┘┴ ┴└─┘┴ ┴└─┘
-(defcallback open-restricted :int ((path :string) (flags :int) (user-data :pointer))
-  (declare (ignore user-data))
-  (let* ((fd (nix:open path flags)))
-    (when (< fd 0) (error "Failed to open ~A" path)) fd))
+(defvar *open-restricted* nil)
+(defcallback open-restricted-cb :int ((path :string) (flags :int) (user-data :pointer))
+  (funcall *open-restricted* path flags user-data))
 
-(defcallback close-restricted :void ((fd :int) (user-data :pointer))
-  (declare (ignore user-data))
-  (nix:close fd))
+(defvar *close-restricted* nil)
+(defcallback close-restricted-cb :void ((fd :int) (user-data :pointer))
+  (funcall *close-restricted* fd user-data))
 
-(defun make-libinput-interface ()
+(defun make-libinput-interface (open-restricted close-restricted)
+  (setf *open-restricted* open-restricted *close-restricted* close-restricted)
   (let ((interface (foreign-alloc '(:struct libinput-interface))))
-    (setf (foreign-slot-value interface '(:struct libinput-interface) 'open-restricted)
-	  (callback open-restricted))
-    (setf (foreign-slot-value interface '(:struct libinput-interface) 'close-restricted)
-	  (callback close-restricted))
+    (with-foreign-slots ((open-restricted close-restricted) interface '(:struct libinput-interface))
+      (setf open-restricted (callback open-restricted-cb)
+	    close-restricted (callback close-restricted-cb)))
     interface))
 
-(defun create-context () (path-create-context (make-libinput-interface) (null-pointer)))
+(defun create-context (&key open-restricted close-restricted user-data)
+  "Create a new libinput context.
+Two callbacks are required, defined via the keys
+:open-restricted and :close-restricted.
+
+:open-restricted is a function which takes a path, flags (c open) and a pointer to user-data
+and is expected to return a valid file descriptor.
+
+:close-restricted is a function which takes a file descriptor and a pointer to user-data
+
+:user-data is a pointer to user data which will be passed to the callbacks,
+the creation of the pointer is left up to the user.
+If :user-data is not provided a null-pointer is used."
+
+  (unless open-restricted (error "Key open-restricted (callback) is required"))
+  (unless close-restricted (error "Key close-restricted (callback) is required"))
+  (path-create-context (make-libinput-interface) (or user-data (null-pointer))))
 
 (defun get-event (context)
   (let* ((event (%get-event context))
