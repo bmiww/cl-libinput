@@ -170,7 +170,10 @@
 (defcfun ("libinput_event_touch_get_y" event-touch-get-y) :double
   (event :pointer))
 
-(defcfun ("libinput_event_touch_get_slot" event-touch-get-slot) :double
+(defcfun ("libinput_event_touch_get_slot" event-touch-get-slot) :int32
+  (event :pointer))
+
+(defcfun ("libinput_event_touch_get_seat_slot" event-touch-get-seat-slot) :int32
   (event :pointer))
 
 ;; ┌─┐┌─┐┬  ┬  ┌┐ ┌─┐┌─┐┬┌─┌─┐
@@ -241,7 +244,7 @@ If :user-data is not provided a null-pointer is used."
 (defstruct (keyboard@ (:include event))                 time key state)
 (defstruct (pointer-motion@ (:include event))           time dx dy)
 (defstruct (pointer-button@ (:include pointer-motion@)) button state)
-(defstruct (touch@ (:include event))                    time x y slot)
+(defstruct (touch@ (:include event))                    time x y slot seat-slot)
 (defstruct (touch-up@ (:include touch@)))
 (defstruct (touch-down@ (:include touch@)))
 (defstruct (touch-motion@ (:include touch@)))
@@ -282,6 +285,7 @@ If :user-data is not provided a null-pointer is used."
   (list :x (event-touch-get-x event) :y (event-touch-get-y event)
 	:time (event-touch-get-time event) :evt-type evt-type
 	:slot (event-touch-get-slot event)
+	:seat-slot (event-touch-get-seat-slot event)))
 	:device (event-get-device event)))
 
 (defun mk-touch-up@     (event evt-type) (apply 'make-touch-up@     (touch-properties event evt-type)))
