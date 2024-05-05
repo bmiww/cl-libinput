@@ -245,11 +245,11 @@ If :user-data is not provided a null-pointer is used."
 (defstruct (pointer-motion@ (:include event))           time dx dy)
 (defstruct (pointer-button@ (:include pointer-motion@)) button state)
 (defstruct (touch@ (:include event))                    time x y slot seat-slot)
-(defstruct (touch-up@ (:include touch@)))
 (defstruct (touch-down@ (:include touch@)))
 (defstruct (touch-motion@ (:include touch@)))
 (defstruct (touch-cancel@ (:include touch@)))
 (defstruct (touch-frame@ (:include event)) time)
+(defstruct (touch-up@ (:include touch-frame@)) time slot seat-slot)
 
 
 ;; ┌─┐┬  ┬┌─┐┌┐┌┌┬┐┌─┐┬─┐  ┌─┐┌─┐┌┐┌┌─┐┌┬┐┬─┐┬ ┬┌─┐┌┬┐┌─┐┬─┐┌─┐
@@ -285,10 +285,9 @@ If :user-data is not provided a null-pointer is used."
   (list :x (event-touch-get-x event) :y (event-touch-get-y event)
 	:time (event-touch-get-time event) :evt-type evt-type
 	:slot (event-touch-get-slot event)
-	:seat-slot (event-touch-get-seat-slot event)))
+	:seat-slot (event-touch-get-seat-slot event)
 	:device (event-get-device event)))
 
-(defun mk-touch-up@     (event evt-type) (apply 'make-touch-up@     (touch-properties event evt-type)))
 (defun mk-touch-down@   (event evt-type) (apply 'make-touch-down@   (touch-properties event evt-type)))
 (defun mk-touch-motion@ (event evt-type) (apply 'make-touch-motion@ (touch-properties event evt-type)))
 (defun mk-touch-cancel@ (event evt-type) (apply 'make-touch-cancel@ (touch-properties event evt-type)))
@@ -297,3 +296,11 @@ If :user-data is not provided a null-pointer is used."
    :evt-type evt-type
    :device (event-get-device event)
    :time (event-touch-get-time event)))
+
+(defun mk-touch-up@ (event evt-type)
+  (make-touch-up@
+   :evt-type evt-type
+   :device (event-get-device event)
+   :time (event-touch-get-time event)
+   :slot (event-touch-get-slot event)
+   :seat-slot (event-touch-get-seat-slot event)))
