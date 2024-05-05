@@ -205,7 +205,7 @@ If :user-data is not provided a null-pointer is used."
 
   (unless open-restricted (error "Key open-restricted (callback) is required"))
   (unless close-restricted (error "Key close-restricted (callback) is required"))
-  (path-create-context (make-libinput-interface) (or user-data (null-pointer))))
+  (path-create-context (make-libinput-interface open-restricted close-restricted) (or user-data (null-pointer))))
 
 (defun get-event (context)
   (let* ((event (%get-event context))
