@@ -220,7 +220,11 @@ If :user-data is not provided a null-pointer is used."
 	  (prog1
 	      (funcall
 	       (case event-type
+		 ;; TODO: I am handling the device-removed event via inotify
+		 ;; So didn't really implement this here. But it could still be done.
+		 ;; Same with device-added.
 		 (:device-added   'just-nil)
+		 (:device-removed 'just-nil)
 		 (:none           'just-nil)
 		 (:keyboard-key   'mk-keyboard@)
 		 (:touch-up       'mk-touch-up@)
