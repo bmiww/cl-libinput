@@ -220,12 +220,9 @@ If :user-data is not provided a null-pointer is used."
 	  (prog1
 	      (funcall
 	       (case event-type
-		 ;; TODO: I am handling the device-removed event via inotify
-		 ;; So didn't really implement this here. But it could still be done.
-		 ;; Same with device-added.
-		 (:device-added   'just-nil)
-		 (:device-removed 'just-nil)
 		 (:none           'just-nil)
+		 (:device-added   'mk-device-added@)
+		 (:device-removed 'mk-device-removed@)
 		 (:keyboard-key   'mk-keyboard@)
 		 (:touch-up       'mk-touch-up@)
 		 (:touch-down	  'mk-touch-down@)
@@ -255,6 +252,11 @@ If :user-data is not provided a null-pointer is used."
 ;; └─┘ └┘ └─┘┘└┘ ┴ └─┘┴└─└─┘
 ;; Replacing the word -event with the symbol @
 (defstruct event device type)
+
+;; DEVICE
+(defstruct (device@ (:include event)))
+(defstruct (device-added@ (:include device@)))
+(defstruct (device-removed@ (:include device@)))
 
 ;; KEYBOARD
 (defstruct (keyboard@ (:include event))                 time key state)
@@ -287,6 +289,10 @@ If :user-data is not provided a null-pointer is used."
 ;; ├┤ └┐┌┘├┤ │││ │ │ │├┬┘  │  │ ││││└─┐ │ ├┬┘│ ││   │ │ │├┬┘└─┐
 ;; └─┘ └┘ └─┘┘└┘ ┴ └─┘┴└─  └─┘└─┘┘└┘└─┘ ┴ ┴└─└─┘└─┘ ┴ └─┘┴└─└─┘
 (defun just-nil (event type) (declare (ignore event type)) nil)
+
+;; DEVICE
+(defun mk-device-added@ (event type) (make-device-added@ :device event :type type))
+(defun mk-device-removed@ (event type) (make-device-removed@ :device event :type type))
 
 ;; KEYBOARD
 (defun mk-keyboard@ (event type)
