@@ -184,7 +184,7 @@
 (defun make-libinput-interface (open-restricted-lisp close-restricted-lisp)
   (setf *open-restricted* open-restricted-lisp *close-restricted* close-restricted-lisp)
   (let ((interface (foreign-alloc '(:struct libinput-interface))))
-    (with-foreign-slots ((open-restricted close-restricted) interface '(:struct libinput-interface))
+    (with-foreign-slots ((open-restricted close-restricted) interface (:struct libinput-interface))
       (setf open-restricted (callback open-restricted-cb)
 	    close-restricted (callback close-restricted-cb)))
     interface))
