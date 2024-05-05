@@ -23,4 +23,5 @@
    touch@-x
    touch@-y
    touch@-time
+   touch@-slot
    touch-motion@-p))
