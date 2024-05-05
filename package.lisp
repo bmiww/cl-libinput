@@ -20,6 +20,9 @@
    device-get-name
    get-event
 
+   ;; Event struct accessors
+   event-type
+   ;; Touch event slots
    touch@-x
    touch@-y
    touch@-time
