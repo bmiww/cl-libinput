@@ -161,20 +161,20 @@
 
 ;; Touch event readers
 ;; NOTE: Missing the usec time and transformed x/y
-(defcfun ("libinput_event_touch_get_time" event-touch-get-time) :uint32
-  (event :pointer))
+(defcfun ("libinput_event_touch_get_time"      event-touch-get-time)      :uint32 (event :pointer))
+(defcfun ("libinput_event_touch_get_x"         event-touch-get-x)         :double (event :pointer))
+(defcfun ("libinput_event_touch_get_y"         event-touch-get-y)         :double (event :pointer))
+(defcfun ("libinput_event_touch_get_slot"      event-touch-get-slot)      :int32  (event :pointer))
+(defcfun ("libinput_event_touch_get_seat_slot" event-touch-get-seat-slot) :int32  (event :pointer))
 
-(defcfun ("libinput_event_touch_get_x" event-touch-get-x) :double
-  (event :pointer))
-
-(defcfun ("libinput_event_touch_get_y" event-touch-get-y) :double
-  (event :pointer))
-
-(defcfun ("libinput_event_touch_get_slot" event-touch-get-slot) :int32
-  (event :pointer))
-
-(defcfun ("libinput_event_touch_get_seat_slot" event-touch-get-seat-slot) :int32
-  (event :pointer))
+;; GESTURE
+(defcfun ("libinput_event_gesture_get_time"         gesture-time)         :uint32 (event :pointer))
+(defcfun ("libinput_event_gesture_get_finger_count" gesture-finger-count) :int    (event :pointer))
+(defcfun ("libinput_event_gesture_get_dx"           gesture-dx)           :double (event :pointer))
+(defcfun ("libinput_event_gesture_get_dy"           gesture-dy)           :double (event :pointer))
+(defcfun ("libinput_event_gesture_get_scale"        gesture-scale)        :double (event :pointer))
+(defcfun ("libinput_event_gesture_get_angle_delta"  gesture-angle-delta)  :double (event :pointer))
+(defcfun ("libinput_event_gesture_get_cancelled"    gesture-cancelled)    :int    (event :pointer))
 
 ;; ┌─┐┌─┐┬  ┬  ┌┐ ┌─┐┌─┐┬┌─┌─┐
 ;; │  ├─┤│  │  ├┴┐├─┤│  ├┴┐└─┐
@@ -233,6 +233,16 @@ If :user-data is not provided a null-pointer is used."
 		 (:touch-cancel	  'mk-touch-cancel@)
 		 (:touch-frame	  'mk-touch-frame@)
 		 (:pointer-button 'mk-pointer-button@)
+
+		 (:gesture-hold-begin   'mk-gesture-hold-begin@)
+		 (:gesture-hold-end     'mk-gesture-hold-end@)
+		 (:gesture-swipe-begin  'mk-gesture-swipe-begin@)
+		 (:gesture-swipe-update 'mk-gesture-swipe-update@)
+		 (:gesture-swipe-end    'mk-gesture-swipe-end@)
+		 (:gesture-pinch-begin  'mk-gesture-pinch-begin@)
+		 (:gesture-pinch-update 'mk-gesture-pinch-update@)
+		 (:gesture-pinch-end    'mk-gesture-pinch-end@)
+
 		 ((:pointer-motion :pointer-motion-absolute) 'mk-pointer-motion@)
 		 (t (error "The dev writing this got lazy and didn't cover the event type ~A" event-type)))
 	       event
@@ -261,12 +271,24 @@ If :user-data is not provided a null-pointer is used."
 (defstruct (touch-motion@ (:include touch@)))
 (defstruct (touch-cancel@ (:include touch@)))
 
+;; GESTURE - seems to be a touchpad
+(defstruct (gesture@ (:include event)) time finger-count cancelled dx dy scale angle-delta)
+(defstruct (gesture-hold-begin@ (:include gesture@)))
+(defstruct (gesture-hold-end@ (:include gesture@)))
+(defstruct (gesture-swipe-begin@ (:include gesture@)))
+(defstruct (gesture-swipe-update@ (:include gesture@)))
+(defstruct (gesture-swipe-end@ (:include gesture@)))
+(defstruct (gesture-pinch-begin@ (:include gesture@)))
+(defstruct (gesture-pinch-update@ (:include gesture@)))
+(defstruct (gesture-pinch-end@ (:include gesture@)))
+
 
 ;; ┌─┐┬  ┬┌─┐┌┐┌┌┬┐┌─┐┬─┐  ┌─┐┌─┐┌┐┌┌─┐┌┬┐┬─┐┬ ┬┌─┐┌┬┐┌─┐┬─┐┌─┐
 ;; ├┤ └┐┌┘├┤ │││ │ │ │├┬┘  │  │ ││││└─┐ │ ├┬┘│ ││   │ │ │├┬┘└─┐
 ;; └─┘ └┘ └─┘┘└┘ ┴ └─┘┴└─  └─┘└─┘┘└┘└─┘ ┴ ┴└─└─┘└─┘ ┴ └─┘┴└─└─┘
 (defun just-nil (event type) (declare (ignore event type)) nil)
 
+;; KEYBOARD
 (defun mk-keyboard@ (event type)
   (make-keyboard@
    :type type
@@ -275,6 +297,7 @@ If :user-data is not provided a null-pointer is used."
    :key (event-keyboard-get-key event)
    :state (event-keyboard-get-key-state event)))
 
+;; POINTER
 (defun mk-pointer-motion@ (event type)
   (make-pointer-motion@
    :type type
@@ -291,6 +314,7 @@ If :user-data is not provided a null-pointer is used."
    :button (event-pointer-get-button event)
    :state (event-pointer-get-button-state event)))
 
+;; TOUCH
 (defun touch-properties (event type)
   (list :x (event-touch-get-x event) :y (event-touch-get-y event)
 	:time (event-touch-get-time event) :type type
@@ -314,3 +338,19 @@ If :user-data is not provided a null-pointer is used."
    :time (event-touch-get-time event)
    :slot (event-touch-get-slot event)
    :seat-slot (event-touch-get-seat-slot event)))
+
+;; GESTURE
+(defun gesture-properties (event type)
+  (list :time (gesture-time event) :type type :device (event-get-device event)
+	:dx (gesture-dx event) :dy (gesture-dy event)
+	:scale (gesture-scale event) :angle-delta (gesture-angle-delta event)
+	:cancelled (gesture-cancelled event) :finger-count (gesture-finger-count event)))
+
+(defun mk-gesture-hold-begin@ (event type) (apply 'make-gesture-hold-begin@ (gesture-properties event type)))
+(defun mk-gesture-hold-end@ (event type) (apply 'make-gesture-hold-end@ (gesture-properties event type)))
+(defun mk-gesture-swipe-begin@ (event type) (apply 'make-gesture-swipe-begin@ (gesture-properties event type)))
+(defun mk-gesture-swipe-update@ (event type) (apply 'make-gesture-swipe-update@ (gesture-properties event type)))
+(defun mk-gesture-swipe-end@ (event type) (apply 'make-gesture-swipe-end@ (gesture-properties event type)))
+(defun mk-gesture-pinch-begin@ (event type) (apply 'make-gesture-pinch-begin@ (gesture-properties event type)))
+(defun mk-gesture-pinch-update@ (event type) (apply 'make-gesture-pinch-update@ (gesture-properties event type)))
+(defun mk-gesture-pinch-end@ (event type) (apply 'make-gesture-pinch-end@ (gesture-properties event type)))
