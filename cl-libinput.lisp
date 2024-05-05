@@ -209,24 +209,27 @@ If :user-data is not provided a null-pointer is used."
   (path-create-context (make-libinput-interface open-restricted close-restricted) (or user-data (null-pointer))))
 
 (defun get-event (context)
-  (let* ((event (%get-event context))
-	 (event-type (assoc (event-get-type event) *event-types*)))
-    (prog1
-	(funcall
-	 (case event-type
-	   (:none nil)
-	   (:keyboard-key                              'mk-keyboard@)
-	   (:touch-up 				       'mk-touch-up@)
-	   (:touch-down				       'mk-touch-down@)
-	   (:touch-motion			       'mk-touch-motion@)
-	   (:touch-cancel			       'mk-touch-cancel@)
-	   (:touch-frame			       'mk-touch-frame@)
-	   (:pointer-button                            'mk-pointer-button@)
-	   ((:pointer-motion :pointer-motion-absolute) 'mk-pointer-motion@)
-	   (t (error "The dev writing this got lazy and didn't cover the event type ~A" event-type)))
-	 event
-	 event-type)
-      (event-destroy event))))
+  (let ((event (%get-event context)))
+    (if (not (pointer-eq event (null-pointer)))
+	(let* ((event-type (assoc (event-get-type event) *event-types*)))
+	  (prog1
+	      (funcall
+	       (case (cdr event-type)
+		 (:device-added   'just-nil)
+		 (:none           'just-nil)
+		 (:keyboard-key   'mk-keyboard@)
+		 (:touch-up       'mk-touch-up@)
+		 (:touch-down	  'mk-touch-down@)
+		 (:touch-motion	  'mk-touch-motion@)
+		 (:touch-cancel	  'mk-touch-cancel@)
+		 (:touch-frame	  'mk-touch-frame@)
+		 (:pointer-button 'mk-pointer-button@)
+		 ((:pointer-motion :pointer-motion-absolute) 'mk-pointer-motion@)
+		 (t (error "The dev writing this got lazy and didn't cover the event type ~A" event-type)))
+	       event
+	       event-type)
+	    (event-destroy event)))
+	nil)))
 
 ;; ┌─┐┬  ┬┌─┐┌┐┌┌┬┐┌─┐┬─┐┌─┐
 ;; ├┤ └┐┌┘├┤ │││ │ │ │├┬┘└─┐
@@ -247,6 +250,8 @@ If :user-data is not provided a null-pointer is used."
 ;; ┌─┐┬  ┬┌─┐┌┐┌┌┬┐┌─┐┬─┐  ┌─┐┌─┐┌┐┌┌─┐┌┬┐┬─┐┬ ┬┌─┐┌┬┐┌─┐┬─┐┌─┐
 ;; ├┤ └┐┌┘├┤ │││ │ │ │├┬┘  │  │ ││││└─┐ │ ├┬┘│ ││   │ │ │├┬┘└─┐
 ;; └─┘ └┘ └─┘┘└┘ ┴ └─┘┴└─  └─┘└─┘┘└┘└─┘ ┴ ┴└─└─┘└─┘ ┴ └─┘┴└─└─┘
+(defun just-nil (event evt-type) (declare (ignore event evt-type)) nil)
+
 (defun mk-keyboard@ (event evt-type)
   (make-keyboard@
    :evt-type evt-type
