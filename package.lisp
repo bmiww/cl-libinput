@@ -25,4 +25,5 @@
    touch@-time
    touch@-slot
    touch@-seat-slot
-   touch-motion@-p))
+   touch-motion@-p
+   touch-down@-p))
