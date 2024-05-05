@@ -34,40 +34,41 @@
 ;; ├┤ └┐┌┘├┤ │││ │ └─┐
 ;; └─┘ └┘ └─┘┘└┘ ┴ └─┘
 (defvar *event-types*
-  '(0 :none
-    1 :device-added
-    2 :device-removed
-    300 :keyboard-key
-    400 :pointer-motion
-    401 :pointer-motion-absolute
-    402 :pointer-button
-    403 :pointer-axis
-    404 :pointer-scroll-wheel
-    405 :pointer-scroll-finger
-    406 :pointer-scroll-continuous
-    500 :touch-down
-    501 :touch-up
-    502 :touch-motion
-    503 :touch-cancel
-    504 :touch-frame
-    600 :tablet-tool-axis
-    601 :tablet-tool-proximity
-    602 :tablet-tool-tip
-    603 :tablet-tool-button
-    700 :tablet-pad-button
-    701 :tablet-pad-ring
-    702 :tablet-pad-strip
-    703 :tablet-pad-key
-    704 :tablet-pad-dial
-    800 :gesture-swipe-begin
-    801 :gesture-swipe-update
-    802 :gesture-swipe-end
-    803 :gesture-pinch-begin
-    804 :gesture-pinch-update
-    805 :gesture-pinch-end
-    806 :gesture-hold-begin
-    807 :gesture-hold-end
-    900 :switch-toggle))
+  (list
+   (cons 0 :none)
+   (cons 1 :device-added)
+   (cons 2 :device-removed)
+   (cons 300 :keyboard-key)
+   (cons 400 :pointer-motion)
+   (cons 401 :pointer-motion-absolute)
+   (cons 402 :pointer-button)
+   (cons 403 :pointer-axis)
+   (cons 404 :pointer-scroll-wheel)
+   (cons 405 :pointer-scroll-finger)
+   (cons 406 :pointer-scroll-continuous)
+   (cons 500 :touch-down)
+   (cons 501 :touch-up)
+   (cons 502 :touch-motion)
+   (cons 503 :touch-cancel)
+   (cons 504 :touch-frame)
+   (cons 600 :tablet-tool-axis)
+   (cons 601 :tablet-tool-proximity)
+   (cons 602 :tablet-tool-tip)
+   (cons 603 :tablet-tool-button)
+   (cons 700 :tablet-pad-button)
+   (cons 701 :tablet-pad-ring)
+   (cons 702 :tablet-pad-strip)
+   (cons 703 :tablet-pad-key)
+   (cons 704 :tablet-pad-dial)
+   (cons 800 :gesture-swipe-begin)
+   (cons 801 :gesture-swipe-update)
+   (cons 802 :gesture-swipe-end)
+   (cons 803 :gesture-pinch-begin)
+   (cons 804 :gesture-pinch-update)
+   (cons 805 :gesture-pinch-end)
+   (cons 806 :gesture-hold-begin)
+   (cons 807 :gesture-hold-end)
+   (cons 900 :switch-toggle)))
 
 
 ;; ┌─┐┌┬┐┬─┐┬ ┬┌─┐┌┬┐┌─┐
@@ -209,7 +210,7 @@ If :user-data is not provided a null-pointer is used."
 
 (defun get-event (context)
   (let* ((event (%get-event context))
-	 (event-type (get (event-get-type event) *event-types*)))
+	 (event-type (assoc (event-get-type event) *event-types*)))
     (prog1
 	(funcall
 	 (case event-type
