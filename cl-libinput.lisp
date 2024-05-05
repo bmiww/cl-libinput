@@ -220,7 +220,7 @@ If :user-data is not provided a null-pointer is used."
 	  (prog1
 	      (funcall
 	       (case event-type
-		 (:none           'just-nil)
+		 (:none           'none@)
 		 (:device-added   'mk-device-added@)
 		 (:device-removed 'mk-device-removed@)
 		 (:keyboard-key   'mk-keyboard@)
@@ -252,6 +252,7 @@ If :user-data is not provided a null-pointer is used."
 ;; └─┘ └┘ └─┘┘└┘ ┴ └─┘┴└─└─┘
 ;; Replacing the word -event with the symbol @
 (defstruct event device type)
+(defstruct (none@ (:include event)))
 
 ;; DEVICE
 (defstruct (device@ (:include event)))
@@ -288,7 +289,7 @@ If :user-data is not provided a null-pointer is used."
 ;; ┌─┐┬  ┬┌─┐┌┐┌┌┬┐┌─┐┬─┐  ┌─┐┌─┐┌┐┌┌─┐┌┬┐┬─┐┬ ┬┌─┐┌┬┐┌─┐┬─┐┌─┐
 ;; ├┤ └┐┌┘├┤ │││ │ │ │├┬┘  │  │ ││││└─┐ │ ├┬┘│ ││   │ │ │├┬┘└─┐
 ;; └─┘ └┘ └─┘┘└┘ ┴ └─┘┴└─  └─┘└─┘┘└┘└─┘ ┴ ┴└─└─┘└─┘ ┴ └─┘┴└─└─┘
-(defun just-nil (event type) (declare (ignore event type)) nil)
+(defun mk-none@ (event type) (make-none@ :device event :type type))
 
 ;; DEVICE
 (defun mk-device-added@ (event type) (make-device-added@ :device event :type type))
