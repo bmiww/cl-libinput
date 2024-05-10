@@ -70,6 +70,11 @@
    (cons 807 :gesture-hold-end)
    (cons 900 :switch-toggle)))
 
+;; TODO: Assuming that 0 means released
+;; Check during run time
+(defcenum libinput-key-state
+  (:released 0)
+  (:pressed 1))
 
 ;; ┌─┐┌┬┐┬─┐┬ ┬┌─┐┌┬┐┌─┐
 ;; └─┐ │ ├┬┘│ ││   │ └─┐
@@ -137,7 +142,7 @@
 (defcfun ("libinput_event_keyboard_get_key" event-keyboard-get-key) :uint32
   (keyboard-event :pointer))
 
-(defcfun ("libinput_event_keyboard_get_key_state" event-keyboard-get-key-state) :int
+(defcfun ("libinput_event_keyboard_get_key_state" event-keyboard-get-key-state) libinput-key-state
   (keyboard-event :pointer))
 
 ;; Pointer event readers
@@ -151,6 +156,12 @@
   (pointer-event :pointer))
 
 (defcfun ("libinput_event_pointer_get_button_state" event-pointer-get-button-state) :int
+  (pointer-event :pointer))
+
+(defcfun ("libinput_event_pointer_get_absolute_x" event-pointer-get-absolute-x) :double
+  (pointer-event :pointer))
+
+(defcfun ("libinput_event_pointer_get_absolute_y" event-pointer-get-absolute-y) :double
   (pointer-event :pointer))
 
 (defcfun ("libinput_event_pointer_get_dx" event-pointer-get-dx) :double
@@ -307,11 +318,11 @@ If :user-data is not provided a null-pointer is used."
 ;; POINTER
 (defun mk-pointer-motion@ (event type)
   (make-pointer-motion@
-   :type type
+   :type   type
    :device (event-get-device event)
-   :time (event-pointer-get-time event)
-   :dx (event-pointer-get-dx event)
-   :dy (event-pointer-get-dy event)))
+   :time   (event-pointer-get-time event)
+   :dx     (event-pointer-get-dx event)
+   :dy     (event-pointer-get-dy event)))
 
 (defun mk-pointer-button@ (event type)
   (make-pointer-button@

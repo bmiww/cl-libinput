@@ -31,4 +31,13 @@
    ;; TODO: This is a bit ridiculous, since we have to define a slot
    ;; for at least 3 different event types.
    touch-up@-seat-slot
-   touch-motion@-p))
+   touch-motion@-p
+
+   ;; Pointer event slots
+   pointer-motion@-dx
+   pointer-motion@-dy
+
+   ;; Keyboard event slots
+   keyboard@-key
+   keyboard@-state
+   ))
