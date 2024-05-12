@@ -294,14 +294,16 @@ If :user-data is not provided a null-pointer is used."
 
 ;; GESTURE - seems to be a touchpad
 (defstruct (gesture@ (:include event)) time finger-count cancelled dx dy scale angle-delta)
-(defstruct (gesture-hold-begin@ (:include gesture@)))
-(defstruct (gesture-hold-end@ (:include gesture@)))
 (defstruct (gesture-swipe-begin@ (:include gesture@)))
 (defstruct (gesture-swipe-update@ (:include gesture@)))
 (defstruct (gesture-swipe-end@ (:include gesture@)))
 (defstruct (gesture-pinch-begin@ (:include gesture@)))
 (defstruct (gesture-pinch-update@ (:include gesture@)))
 (defstruct (gesture-pinch-end@ (:include gesture@)))
+
+(defstruct (gesture-hold@ (:include event)) time finger-count)
+(defstruct (gesture-hold-begin@ (:include gesture-hold@)))
+(defstruct (gesture-hold-end@ (:include gesture-hold@)) cancelled)
 
 
 ;; ┌─┐┬  ┬┌─┐┌┐┌┌┬┐┌─┐┬─┐  ┌─┐┌─┐┌┐┌┌─┐┌┬┐┬─┐┬ ┬┌─┐┌┬┐┌─┐┬─┐┌─┐
@@ -371,11 +373,24 @@ If :user-data is not provided a null-pointer is used."
 	:scale (gesture-scale event) :angle-delta (gesture-angle-delta event)
 	:cancelled (gesture-cancelled event) :finger-count (gesture-finger-count event)))
 
-(defun mk-gesture-hold-begin@ (event type) (apply 'make-gesture-hold-begin@ (gesture-properties event type)))
-(defun mk-gesture-hold-end@ (event type) (apply 'make-gesture-hold-end@ (gesture-properties event type)))
 (defun mk-gesture-swipe-begin@ (event type) (apply 'make-gesture-swipe-begin@ (gesture-properties event type)))
 (defun mk-gesture-swipe-update@ (event type) (apply 'make-gesture-swipe-update@ (gesture-properties event type)))
 (defun mk-gesture-swipe-end@ (event type) (apply 'make-gesture-swipe-end@ (gesture-properties event type)))
 (defun mk-gesture-pinch-begin@ (event type) (apply 'make-gesture-pinch-begin@ (gesture-properties event type)))
 (defun mk-gesture-pinch-update@ (event type) (apply 'make-gesture-pinch-update@ (gesture-properties event type)))
 (defun mk-gesture-pinch-end@ (event type) (apply 'make-gesture-pinch-end@ (gesture-properties event type)))
+
+(defun mk-gesture-hold-begin@ (event type)
+  (make-gesture-hold-begin@
+   :time (gesture-time event)
+   :type type
+   :device (event-get-device event)
+   :finger-count (gesture-finger-count event)))
+
+(defun mk-gesture-hold-end@ (event type)
+  (make-gesture-hold-end@
+   :time (gesture-time event)
+   :type type
+   :device (event-get-device event)
+   :cancelled (gesture-cancelled event)
+   :finger-count (gesture-finger-count event)))
