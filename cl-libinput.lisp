@@ -162,7 +162,7 @@
 (defcfun ("libinput_event_pointer_get_button" event-pointer-get-button) :uint32
   (pointer-event :pointer))
 
-(defcfun ("libinput_event_pointer_get_button_state" event-pointer-get-button-state) :int
+(defcfun ("libinput_event_pointer_get_button_state" event-pointer-get-button-state) libinput-button-state
   (pointer-event :pointer))
 
 (defcfun ("libinput_event_pointer_get_absolute_x" event-pointer-get-absolute-x) :double
