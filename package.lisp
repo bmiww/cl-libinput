@@ -37,6 +37,9 @@
    pointer-motion@-dx
    pointer-motion@-dy
 
+   pointer-button@-button
+   pointer-button@-state
+
    ;; Keyboard event slots
    keyboard@-key
    keyboard@-state
