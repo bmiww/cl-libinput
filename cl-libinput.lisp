@@ -76,6 +76,13 @@
   (:released 0)
   (:pressed 1))
 
+;; TODO: Same as previous
+;; NOTE: button here means - key button
+(defcenum libinput-button-state
+  (:released 0)
+  (:pressed 1))
+
+
 ;; ┌─┐┌┬┐┬─┐┬ ┬┌─┐┌┬┐┌─┐
 ;; └─┐ │ ├┬┘│ ││   │ └─┐
 ;; └─┘ ┴ ┴└─└─┘└─┘ ┴ └─┘
