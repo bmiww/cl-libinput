@@ -143,8 +143,6 @@
   (event :pointer))
 
 ;; Keyboard event readers
-(defcfun ("libinput_event_get_keyboard_event" event-get-keyboard-event) :pointer
-  (event :pointer))
 
 (defcfun ("libinput_event_keyboard_get_time" event-keyboard-get-time) :uint32
   (keyboard-event :pointer))
@@ -155,30 +153,22 @@
 (defcfun ("libinput_event_keyboard_get_key_state" event-keyboard-get-key-state) libinput-key-state
   (keyboard-event :pointer))
 
+
+;; ┌─┐┬  ┬┌─┐┌┐┌┌┬┐  ┌─┐┌─┐┌┬┐┌┬┐┌─┐┬─┐┌─┐
+;; ├┤ └┐┌┘├┤ │││ │   │ ┬├┤  │  │ ├┤ ├┬┘└─┐
+;; └─┘ └┘ └─┘┘└┘ ┴   └─┘└─┘ ┴  ┴ └─┘┴└─└─┘
+(defcfun ("libinput_event_get_pointer_event"  event-get-pointer-event)  :pointer (event :pointer))
+(defcfun ("libinput_event_get_keyboard_event" event-get-keyboard-event) :pointer (event :pointer))
+
 ;; Pointer event readers
-(defcfun ("libinput_event_get_pointer_event" event-get-pointer-event) :pointer
-  (event :pointer))
-
-(defcfun ("libinput_event_pointer_get_time" event-pointer-get-time) :uint32
-  (pointer-event :pointer))
-
-(defcfun ("libinput_event_pointer_get_button" event-pointer-get-button) :uint32
-  (pointer-event :pointer))
-
-(defcfun ("libinput_event_pointer_get_button_state" event-pointer-get-button-state) libinput-button-state
-  (pointer-event :pointer))
-
-(defcfun ("libinput_event_pointer_get_absolute_x" event-pointer-get-absolute-x) :double
-  (pointer-event :pointer))
-
-(defcfun ("libinput_event_pointer_get_absolute_y" event-pointer-get-absolute-y) :double
-  (pointer-event :pointer))
-
-(defcfun ("libinput_event_pointer_get_dx" event-pointer-get-dx) :double
-  (pointer-event :pointer))
-
-(defcfun ("libinput_event_pointer_get_dy" event-pointer-get-dy) :double
-  (pointer-event :pointer))
+(defcfun ("libinput_event_pointer_get_time"         event-pointer-get-time) :uint32 (pointer-event :pointer))
+(defcfun ("libinput_event_pointer_get_button"       event-pointer-get-button) :uint32 (pointer-event :pointer))
+(defcfun ("libinput_event_pointer_get_button_state" event-pointer-get-button-state) libinput-button-state (pointer-event :pointer))
+(defcfun ("libinput_event_pointer_get_absolute_x"   event-pointer-get-absolute-x) :double (pointer-event :pointer))
+(defcfun ("libinput_event_pointer_get_absolute_y"   event-pointer-get-absolute-y) :double (pointer-event :pointer))
+(defcfun ("libinput_event_pointer_get_dx"           event-pointer-get-dx) :double (pointer-event :pointer))
+(defcfun ("libinput_event_pointer_get_dy"           event-pointer-get-dy) :double (pointer-event :pointer))
+(defcfun ("libinput_event_pointer_get_scroll_value" event-pointer-get-scroll-value) :double (pointer-event :pointer))
 
 ;; Touch event readers
 ;; NOTE: Missing the usec time and transformed x/y
@@ -266,7 +256,9 @@ If :user-data is not provided a null-pointer is used."
 		 (:gesture-pinch-update 'mk-gesture-pinch-update@)
 		 (:gesture-pinch-end    'mk-gesture-pinch-end@)
 
-		 ((:pointer-motion :pointer-motion-absolute) 'mk-pointer-motion@)
+		 (:pointer-motion        'mk-pointer-motion@)
+		 (:pointer-scroll-finger 'mk-pointer-scroll-finger@)
+		 (:pointer-axis          'mk-pointer-axis@)
 
 		 (:switch-toggle 'mk-switch-toggle@)
 		 (t (error "The dev writing this got lazy and didn't cover the event type ~A" event-type)))
@@ -291,8 +283,11 @@ If :user-data is not provided a null-pointer is used."
 (defstruct (keyboard@ (:include event))                 time key state)
 
 ;; POINTER
-(defstruct (pointer-motion@ (:include event))           time dx dy)
-(defstruct (pointer-button@ (:include pointer-motion@)) button state)
+(defstruct (pointer@               (:include event))    time)
+(defstruct (pointer-motion@        (:include pointer@)) dx dy)
+(defstruct (pointer-button@        (:include pointer@)) button state)
+(defstruct (pointer-scroll-finger@ (:include pointer@)) scroll-value)
+(defstruct (pointer-axis@          (:include pointer@)))
 
 ;; TOUCH
 (defstruct (touch-frame@ (:include event)) time)
@@ -352,6 +347,21 @@ If :user-data is not provided a null-pointer is used."
    :time (event-pointer-get-time event)
    :button (event-pointer-get-button event)
    :state (event-pointer-get-button-state event)))
+
+(defun mk-pointer-scroll-finger@ (event type)
+  (make-pointer-scroll-finger@
+   :type type
+   :device (event-get-device event)
+   :time (event-pointer-get-time event)
+   :scroll-value (event-pointer-get-scroll-value event)))
+
+;; NOTE: libinput says that if scroll events are being handled then pointer-axis events are not needed
+;; So not implementing this for now
+(defun mk-pointer-axis@ (event type)
+  (make-pointer-axis@
+   :type type
+   :device (event-get-device event)
+   :time (event-pointer-get-time event)))
 
 ;; TOUCH
 (defun touch-properties (event type)
