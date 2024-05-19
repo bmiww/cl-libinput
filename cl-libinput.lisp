@@ -70,18 +70,21 @@
    (cons 807 :gesture-hold-end)
    (cons 900 :switch-toggle)))
 
-;; TODO: Assuming that 0 means released
-;; Check during run time
+(defcenum switch
+  (:lid 1)
+  (:tablet-mode 2))
+
+(defcenum switch-state
+  (:off 0)
+  (:on 1))
+
 (defcenum libinput-key-state
   (:released 0)
   (:pressed 1))
 
-;; TODO: Same as previous
-;; NOTE: button here means - key button
 (defcenum libinput-button-state
   (:released 0)
   (:pressed 1))
-
 
 ;; ┌─┐┌┬┐┬─┐┬ ┬┌─┐┌┬┐┌─┐
 ;; └─┐ │ ├┬┘│ ││   │ └─┐
@@ -194,6 +197,11 @@
 (defcfun ("libinput_event_gesture_get_angle_delta"  gesture-angle-delta)  :double (event :pointer))
 (defcfun ("libinput_event_gesture_get_cancelled"    gesture-cancelled)    :int    (event :pointer))
 
+;; SWITCH
+(defcfun ("libinput_event_switch_get_time" switch-time) :uint32 (event :pointer))
+(defcfun ("libinput_event_switch_get_switch" switch-switch) switch (event :pointer))
+(defcfun ("libinput_event_switch_get_switch_state" switch-state) switch-state (event :pointer))
+
 ;; ┌─┐┌─┐┬  ┬  ┌┐ ┌─┐┌─┐┬┌─┌─┐
 ;; │  ├─┤│  │  ├┴┐├─┤│  ├┴┐└─┐
 ;; └─┘┴ ┴┴─┘┴─┘└─┘┴ ┴└─┘┴ ┴└─┘
@@ -259,6 +267,8 @@ If :user-data is not provided a null-pointer is used."
 		 (:gesture-pinch-end    'mk-gesture-pinch-end@)
 
 		 ((:pointer-motion :pointer-motion-absolute) 'mk-pointer-motion@)
+
+		 (:switch-toggle 'mk-switch-toggle@)
 		 (t (error "The dev writing this got lazy and didn't cover the event type ~A" event-type)))
 	       event
 	       event-type)
@@ -305,6 +315,8 @@ If :user-data is not provided a null-pointer is used."
 (defstruct (gesture-hold-begin@ (:include gesture-hold@)))
 (defstruct (gesture-hold-end@ (:include gesture-hold@)) cancelled)
 
+;; SWITCH
+(defstruct (switch-toggle@ (:include event)) time switch state)
 
 ;; ┌─┐┬  ┬┌─┐┌┐┌┌┬┐┌─┐┬─┐  ┌─┐┌─┐┌┐┌┌─┐┌┬┐┬─┐┬ ┬┌─┐┌┬┐┌─┐┬─┐┌─┐
 ;; ├┤ └┐┌┘├┤ │││ │ │ │├┬┘  │  │ ││││└─┐ │ ├┬┘│ ││   │ │ │├┬┘└─┐
@@ -365,6 +377,15 @@ If :user-data is not provided a null-pointer is used."
    :time (event-touch-get-time event)
    :slot (event-touch-get-slot event)
    :seat-slot (event-touch-get-seat-slot event)))
+
+;; SWITCH
+(defun mk-switch-toggle@ (event type)
+  (make-switch-toggle@
+   :type type
+   :device (event-get-device event)
+   :time (switch-time event)
+   :switch (switch-switch event)
+   :state (switch-state event)))
 
 ;; GESTURE
 (defun gesture-properties (event type)
