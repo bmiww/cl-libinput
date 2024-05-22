@@ -404,11 +404,17 @@ If :user-data is not provided a null-pointer is used."
 	:scale (gesture-scale event) :angle-delta (gesture-angle-delta event)
 	:cancelled (gesture-cancelled event) :finger-count (gesture-finger-count event)))
 
+(defun gesture-pinch-properties (event type)
+  (list :time (gesture-time event) :type type :device (event-get-device event)
+	:dx (gesture-dx event) :dy (gesture-dy event)
+	:scale (gesture-scale event) :angle-delta (gesture-angle-delta event)
+	:finger-count (gesture-finger-count event)))
+
 (defun mk-gesture-swipe-begin@ (event type) (apply 'make-gesture-swipe-begin@ (gesture-properties event type)))
 (defun mk-gesture-swipe-update@ (event type) (apply 'make-gesture-swipe-update@ (gesture-properties event type)))
 (defun mk-gesture-swipe-end@ (event type) (apply 'make-gesture-swipe-end@ (gesture-properties event type)))
-(defun mk-gesture-pinch-begin@ (event type) (apply 'make-gesture-pinch-begin@ (gesture-properties event type)))
-(defun mk-gesture-pinch-update@ (event type) (apply 'make-gesture-pinch-update@ (gesture-properties event type)))
+(defun mk-gesture-pinch-begin@ (event type) (apply 'make-gesture-pinch-begin@ (gesture-pinch-properties event type)))
+(defun mk-gesture-pinch-update@ (event type) (apply 'make-gesture-pinch-update@ (gesture-pinch-properties event type)))
 (defun mk-gesture-pinch-end@ (event type) (apply 'make-gesture-pinch-end@ (gesture-properties event type)))
 
 (defun mk-gesture-hold-begin@ (event type)
