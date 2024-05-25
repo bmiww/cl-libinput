@@ -292,7 +292,7 @@ If :user-data is not provided a null-pointer is used."
 (defstruct (pointer@               (:include event))    time)
 (defstruct (pointer-motion@        (:include pointer@)) dx dy)
 (defstruct (pointer-button@        (:include pointer@)) button state)
-(defstruct (pointer-scroll-finger@ (:include pointer@)) scroll-x scroll-y)
+(defstruct (pointer-scroll-finger@ (:include pointer@)) dx dy)
 (defstruct (pointer-axis@          (:include pointer@)))
 
 ;; TOUCH
@@ -361,8 +361,8 @@ If :user-data is not provided a null-pointer is used."
      :type type
      :device (event-get-device event)
      :time (pointer-get-time event)
-     :scroll-x (when has-x (pointer-get-scroll-value event :horizontal))
-     :scroll-y (when has-y (pointer-get-scroll-value event :vertical)))))
+     :dx (when has-x (pointer-get-scroll-value event :horizontal))
+     :dy (when has-y (pointer-get-scroll-value event :vertical)))))
 
 ;; NOTE: libinput deprecated. Process for the sake of processing.
 (defun mk-pointer-axis@ (event type) (make-pointer-axis@ :type type))

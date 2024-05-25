@@ -40,6 +40,9 @@
    pointer-button@-button
    pointer-button@-state
 
+   pointer-scroll-finger@-dx
+   pointer-scroll-finger@-dy
+
    ;; Keyboard event slots
    keyboard@-key
    keyboard@-state
