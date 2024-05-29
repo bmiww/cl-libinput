@@ -128,6 +128,18 @@
 (defcfun ("libinput_device_get_name" device-get-name) :string
   (device :pointer))
 
+(defcfun ("libinput_device_get_output_name" device-get-output-name) :string
+  (device :pointer))
+
+(defcfun ("libinput_device_get_sysname" device-get-sysname) :string
+  (device :pointer))
+
+(defcfun ("libinput_device_get_id_product" device-get-id-product) :int
+  (device :pointer))
+
+(defcfun ("libinput_device_get_id_vendor" device-get-id-vendor) :int
+  (device :pointer))
+
 (defcfun ("libinput_device_ref" device-ref) :pointer
   (device :pointer))
 
@@ -283,7 +295,7 @@ If :user-data is not provided a null-pointer is used."
 ;; DEVICE
 (defstruct (device@ (:include event)))
 (defstruct (device-added@ (:include device@)))
-(defstruct (device-removed@ (:include device@)))
+(defstruct (device-removed@ (:include device@)) name output-name sys-name vendor product)
 
 ;; KEYBOARD
 (defstruct (keyboard@ (:include event))                 time key state)
@@ -326,7 +338,14 @@ If :user-data is not provided a null-pointer is used."
 
 ;; DEVICE
 (defun mk-device-added@ (event type) (make-device-added@ :device event :type type))
-(defun mk-device-removed@ (event type) (make-device-removed@ :device event :type type))
+(defun mk-device-removed@ (event type)
+  (let ((device (event-get-device event)))
+    (make-device-removed@ :device device :type type
+			  :name (device-get-name device)
+			  :output-name (device-get-output-name device)
+			  :sys-name (device-get-sysname device)
+			  :vendor (device-get-id-vendor device)
+			  :product (device-get-id-product device))))
 
 ;; KEYBOARD
 (defun mk-keyboard@ (event type)

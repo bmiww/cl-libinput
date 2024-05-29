@@ -17,7 +17,13 @@
    device-cap-tablet-pad
    device-cap-gesture
    device-has-capability
-   device-get-name
+
+   device-removed@-name
+   device-removed@-output-name
+   device-removed@-sys-name
+   device-removed@-vendor
+   device-removed@-product
+
    get-event
 
    ;; Event struct accessors
