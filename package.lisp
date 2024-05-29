@@ -16,6 +16,7 @@
    device-cap-tablet-tool
    device-cap-tablet-pad
    device-cap-gesture
+   device-get-name
    device-has-capability
 
    device-removed@-name
