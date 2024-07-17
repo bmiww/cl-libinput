@@ -18,6 +18,8 @@
    device-cap-gesture
    device-get-name
    device-has-capability
+   device-get-size
+   device-get-output-name
 
    device-removed@-name
    device-removed@-output-name

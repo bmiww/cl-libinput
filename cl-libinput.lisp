@@ -146,6 +146,11 @@
 (defcfun ("libinput_device_unref" device-unref) :pointer
   (device :pointer))
 
+(defcfun ("libinput_device_get_size" %device-get-size) :int
+  (device :pointer)
+  (width :pointer)
+  (height :pointer))
+
 (defcfun ("libinput_get_event" %get-event) :pointer
   (context :pointer))
 
@@ -209,6 +214,18 @@
 (defcfun ("libinput_event_switch_get_time" switch-time) :uint32 (event :pointer))
 (defcfun ("libinput_event_switch_get_switch" switch-switch) switch (event :pointer))
 (defcfun ("libinput_event_switch_get_switch_state" switch-state) switch-state (event :pointer))
+
+
+;; ┌─┐┬ ┬┌┐┌┌─┐  ┬ ┬┬─┐┌─┐┌─┐┌─┐
+;; ├┤ │ │││││    │││├┬┘├─┤├─┘└─┐
+;; └  └─┘┘└┘└─┘  └┴┘┴└─┴ ┴┴  └─┘
+(defun device-get-size (device)
+  (with-foreign-pointer (width (foreign-type-size :double))
+    (with-foreign-pointer (height (foreign-type-size :double))
+      (if (eq 0 (%device-get-size device width height))
+	  (values (mem-ref width :double) (mem-ref height :double))
+	  nil))))
+
 
 ;; ┌─┐┌─┐┬  ┬  ┌┐ ┌─┐┌─┐┬┌─┌─┐
 ;; │  ├─┤│  │  ├┴┐├─┤│  ├┴┐└─┐
@@ -384,7 +401,7 @@ If :user-data is not provided a null-pointer is used."
      :dy (when has-y (pointer-get-scroll-value event :vertical)))))
 
 ;; NOTE: libinput deprecated. Process for the sake of processing.
-(defun mk-pointer-axis@ (event type) (make-pointer-axis@ :type type))
+(defun mk-pointer-axis@ (event type) (declare (ignore event)) (make-pointer-axis@ :type type))
 
 ;; TOUCH
 (defun touch-properties (event type)
