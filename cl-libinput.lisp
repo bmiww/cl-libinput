@@ -8,18 +8,6 @@
 ;; "cl-libinput" goes here. Hacks and glory await!
 (in-package #:libinput)
 
-;; ┌─┐┌─┐┌─┐┌─┐┌┐ ┬┬  ┬┌┬┐┬┌─┐┌─┐
-;; │  ├─┤├─┘├─┤├┴┐││  │ │ │├┤ └─┐
-;; └─┘┴ ┴┴  ┴ ┴└─┘┴┴─┘┴ ┴ ┴└─┘└─┘
-(defparameter device-cap-keyboard 0)
-(defparameter device-cap-pointer 1)
-(defparameter device-cap-touch 2)
-(defparameter device-cap-tablet-tool 3)
-(defparameter device-cap-tablet-pad 4)
-(defparameter device-cap-gesture 5)
-(defparameter device-cap-switch 6)
-
-
 ;; ┌─┐┬  ┬┌─┐┌┐┌┌┬┐┌─┐
 ;; ├┤ └┐┌┘├┤ │││ │ └─┐
 ;; └─┘ └┘ └─┘┘└┘ ┴ └─┘
@@ -87,6 +75,14 @@
   (open-restricted :pointer)
   (close-restricted :pointer))
 
+(defcenum device-cap
+  (:keyboard 0)
+  (:pointer 1)
+  (:touch 2)
+  (:tablet-tool 3)
+  (:tablet-pad 4)
+  (:gesture 5)
+  (:switch 6))
 
 ;; ┌─┐┬ ┬┌┐┌┌─┐┌┬┐┬┌─┐┌┐┌┌─┐
 ;; ├┤ │ │││││   │ ││ ││││└─┐
@@ -111,9 +107,9 @@
 (defcfun ("libinput_dispatch" dispatch) :int
   (context :pointer))
 
-(defcfun ("libinput_device_has_capability" device-has-capability) :int
+(defcfun ("libinput_device_has_capability" %device-has-capability) :int
   (device :pointer)
-  (capability :int))
+  (capability device-cap))
 
 (defcfun ("libinput_device_get_name" device-get-name) :string
   (device :pointer))
@@ -219,6 +215,7 @@
 	  (values (mem-ref width :double) (mem-ref height :double))
 	  nil))))
 
+(defun device-has-capability (device capability) (not (eq 0 (%device-has-capability device capability))))
 
 ;; ┌─┐┌─┐┬  ┬  ┌┐ ┌─┐┌─┐┬┌─┌─┐
 ;; │  ├─┤│  │  ├┴┐├─┤│  ├┴┐└─┐
