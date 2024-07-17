@@ -8,4 +8,5 @@
   :depends-on (#:cffi)
   :serial t
   :components ((:file "package")
+	       (:file "bus-types")
                (:file "cl-libinput")))

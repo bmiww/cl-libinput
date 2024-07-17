@@ -7,16 +7,6 @@
 ;;  ╚═════╝╚══════╝ ╚══════╝╚═╝╚═════╝ ╚═╝╚═╝  ╚═══╝╚═╝      ╚═════╝    ╚═╝
 ;; "cl-libinput" goes here. Hacks and glory await!
 (in-package #:libinput)
-(define-foreign-library libinput
-  (:unix (:or
-	  "libinput.so"
-	  "libinput.so.10"
-          "/usr/lib64/libinput.so"
-          "/usr/lib64/libinput.so.10"
-          "/usr/lib/x86_64-linux-gnu/libinput.so.10"))
-  (t (:default "libinput")))
-
-(use-foreign-library libinput)
 
 ;; ┌─┐┌─┐┌─┐┌─┐┌┐ ┬┬  ┬┌┬┐┬┌─┐┌─┐
 ;; │  ├─┤├─┘├─┤├┴┐││  │ │ │├┤ └─┐
@@ -134,10 +124,13 @@
 (defcfun ("libinput_device_get_sysname" device-get-sysname) :string
   (device :pointer))
 
-(defcfun ("libinput_device_get_id_product" device-get-id-product) :int
+(defcfun ("libinput_device_get_id_product" device-get-id-product) :uint
   (device :pointer))
 
-(defcfun ("libinput_device_get_id_vendor" device-get-id-vendor) :int
+(defcfun ("libinput_device_get_id_vendor" device-get-id-vendor) :uint
+  (device :pointer))
+
+(defcfun ("libinput_device_get_id_bustype" device-get-id-bustype) bus-type
   (device :pointer))
 
 (defcfun ("libinput_device_ref" device-ref) :pointer

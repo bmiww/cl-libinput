@@ -20,6 +20,9 @@
    device-has-capability
    device-get-size
    device-get-output-name
+   device-get-id-product
+   device-get-id-vendor
+   device-get-id-bustype
 
    device-removed@-name
    device-removed@-output-name
@@ -56,3 +59,16 @@
    keyboard@-key
    keyboard@-state
    ))
+
+
+(in-package #:libinput)
+(define-foreign-library libinput
+  (:unix (:or
+	  "libinput.so"
+	  "libinput.so.10"
+          "/usr/lib64/libinput.so"
+          "/usr/lib64/libinput.so.10"
+          "/usr/lib/x86_64-linux-gnu/libinput.so.10"))
+  (t (:default "libinput")))
+
+(use-foreign-library libinput)
