@@ -90,6 +90,9 @@
 (defcfun ("libinput_unref" unref) :pointer
   (context :pointer))
 
+(defcfun ("libinput_suspend" suspend) :void
+  (context :pointer))
+
 (defcfun ("libinput_path_create_context" path-create-context) :pointer
   (interface :pointer)
   (user-date :pointer))

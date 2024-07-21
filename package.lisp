@@ -3,10 +3,12 @@
 (defpackage #:libinput
   (:use #:cl #:cffi)
   (:export
-   unref
    create-context
+   unref suspend
+
    path-add-device
    path-remove-device
+
    get-fd
    device-ref
    device-unref
